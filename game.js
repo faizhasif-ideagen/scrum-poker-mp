@@ -676,6 +676,7 @@ class Game {
             knight.x = moveData.x;
             knight.y = moveData.y;
             knight.rotation = moveData.rotation;
+            knight.isBlocking = moveData.isBlocking || false;
         }
     }
 
@@ -1000,16 +1001,18 @@ class Game {
                     const oldX = knight.x;
                     const oldY = knight.y;
                     const oldRotation = knight.rotation;
+                    const oldBlocking = knight.isBlocking;
 
                     knight.update(this.keys, this.canvas.width, this.canvas.height);
 
-                    // In network mode, broadcast position if moved
-                    if (this.isNetworkMode && (oldX !== knight.x || oldY !== knight.y || oldRotation !== knight.rotation)) {
+                    // In network mode, broadcast position/state if changed
+                    if (this.isNetworkMode && (oldX !== knight.x || oldY !== knight.y || oldRotation !== knight.rotation || oldBlocking !== knight.isBlocking)) {
                         networkManager.sendKnightMove({
                             playerId: knight.player.id,
                             x: knight.x,
                             y: knight.y,
-                            rotation: knight.rotation
+                            rotation: knight.rotation,
+                            isBlocking: knight.isBlocking
                         });
                     }
                 } else if (!this.isNetworkMode) {
@@ -1217,6 +1220,66 @@ class Game {
         // Right team score
         this.ctx.textAlign = 'right';
         this.ctx.fillText(`${rightAlive} alive`, this.canvas.width - 20, 55);
+
+        // Draw controls legend box on right side
+        const legendX = this.canvas.width - 250;
+        const legendY = 100;
+        const legendWidth = 230;
+        const legendHeight = 200;
+
+        // Draw box background
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+
+        // Draw border
+        this.ctx.strokeStyle = '#00CED1';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(legendX, legendY, legendWidth, legendHeight);
+
+        // Draw title
+        this.ctx.fillStyle = '#00CED1';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('CONTROLS', legendX + legendWidth / 2, legendY + 25);
+
+        // Draw controls with color coding
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.textAlign = 'left';
+        let yPos = legendY + 50;
+        const lineHeight = 22;
+
+        // Movement
+        this.ctx.fillStyle = '#FFD700'; // Gold
+        this.ctx.fillText('WASD / Arrows', legendX + 15, yPos);
+        this.ctx.fillStyle = '#fff';
+        this.ctx.fillText('Move', legendX + 150, yPos);
+        yPos += lineHeight;
+
+        // Rotation
+        this.ctx.fillStyle = '#87CEEB'; // Sky blue
+        this.ctx.fillText('Q / E', legendX + 15, yPos);
+        this.ctx.fillStyle = '#fff';
+        this.ctx.fillText('Rotate', legendX + 150, yPos);
+        yPos += lineHeight;
+
+        // Attack
+        this.ctx.fillStyle = '#FF6B6B'; // Red
+        this.ctx.fillText('SPACE', legendX + 15, yPos);
+        this.ctx.fillStyle = '#fff';
+        this.ctx.fillText('Attack', legendX + 150, yPos);
+        yPos += lineHeight;
+
+        // Block (Hold-based - emphasized)
+        this.ctx.fillStyle = '#4ECDC4'; // Cyan
+        this.ctx.fillText('C (HOLD)', legendX + 15, yPos);
+        this.ctx.fillStyle = '#fff';
+        this.ctx.fillText('Block', legendX + 150, yPos);
+        yPos += lineHeight + 10;
+
+        // Additional info
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        this.ctx.font = '11px Arial';
+        this.ctx.fillText('Block covers 180° front', legendX + 15, yPos);
     }
 
     endBattle(winner) {
@@ -1623,10 +1686,10 @@ class Player {
         this.socketId = socketId; // For multiplayer
         this.stats = this.generateStats();
 
-        // Base stats
-        this.maxHp = 20;
+        // Base stats (HP increased 10x for better gameplay)
+        this.maxHp = 200;
         this.damage = 5;
-        this.attackRange = 40; // Base attack range (reduced by 50%)
+        this.attackRange = 40; // Base attack range
 
         // Statistics
         this.kills = 0;
@@ -1653,14 +1716,14 @@ class Player {
     applyStats() {
         this.stats.forEach((level, index) => {
             switch (index) {
-                case 0: // HP bonus
-                    this.maxHp += (level * 3);
+                case 0: // HP bonus (scaled 10x)
+                    this.maxHp += (level * 30);
                     break;
                 case 1: // Damage bonus
                     this.damage += (level * 2);
                     break;
-                case 2: // Combined HP and damage
-                    this.maxHp += level;
+                case 2: // Combined HP and damage (HP scaled 10x)
+                    this.maxHp += (level * 10);
                     this.damage += level;
                     break;
                 case 3: // Attack Range
@@ -1674,6 +1737,9 @@ class Player {
 
         this.damage = Math.round(this.damage);
         this.attackRange = Math.round(this.attackRange);
+
+        // Cap damage at 200 max
+        this.damage = Math.min(this.damage, 200);
     }
 }
 
@@ -1703,13 +1769,9 @@ class Knight {
         this.swordSwingActive = false;
         this.damageAppliedThisSwing = false;
 
-        // Blocking system
+        // Blocking system (hold-based, 180° line defense)
         this.isBlocking = false;
-        this.blockDuration = 30; // frames to hold block (0.5 seconds)
-        this.blockTimer = 0;
-        this.blockCooldown = 0;
-        this.blockCooldownMax = 90; // 1.5 second cooldown
-        this.blockAngle = 120; // degrees (60° each side, larger than attack cone)
+        this.blockAngle = 180; // degrees (90° each side - full front line)
     }
 
     update(keys, canvasWidth, canvasHeight) {
@@ -1725,10 +1787,8 @@ class Knight {
         while (this.rotation < 0) this.rotation += Math.PI * 2;
         while (this.rotation >= Math.PI * 2) this.rotation -= Math.PI * 2;
 
-        // Block with C key
-        if (keys['c'] || keys['C']) {
-            this.startBlock();
-        }
+        // Hold-based blocking with C key
+        this.isBlocking = (keys['c'] || keys['C']);
 
         // Movement controls (WASD / Arrow keys) - can't move while blocking
         if (!this.isBlocking) {
@@ -1772,21 +1832,21 @@ class Knight {
             const distance = Math.hypot(dx, dy);
             const targetAngle = Math.atan2(dy, dx);
 
-            // Check if target is attacking and close - consider blocking
+            // Check if target is attacking and close - AI blocks automatically
             const shouldBlock = this.aiTarget.isAttacking &&
                                distance < this.attackRange * 1.5 &&
                                Math.random() < 0.3; // 30% chance to block when under attack
 
-            if (shouldBlock && !this.isBlocking) {
+            if (shouldBlock) {
                 // Calculate if attack is coming from front
                 let angleDiff = targetAngle - this.rotation;
                 while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                 while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
 
                 // Block if enemy is roughly in front
-                if (Math.abs(angleDiff) < Math.PI / 2) {
-                    this.startBlock();
-                }
+                this.isBlocking = Math.abs(angleDiff) < Math.PI / 2;
+            } else {
+                this.isBlocking = false;
             }
 
             if (!this.isBlocking) {
@@ -1865,33 +1925,12 @@ class Knight {
             }
         }
 
-        // Update block timer
-        if (this.isBlocking) {
-            this.blockTimer--;
-            if (this.blockTimer <= 0) {
-                this.isBlocking = false;
-                this.blockCooldown = this.blockCooldownMax;
-            }
-        }
-
-        // Update block cooldown
-        if (this.blockCooldown > 0) {
-            this.blockCooldown--;
-        }
-
+        // Update attack cooldown
         if (this.attackCooldown > 0) {
             this.attackCooldown--;
             if (this.attackCooldown === 0) {
                 this.isAttacking = false;
             }
-        }
-    }
-
-    startBlock() {
-        if (this.blockCooldown === 0 && !this.isBlocking) {
-            this.isBlocking = true;
-            this.blockTimer = this.blockDuration;
-            console.log(`${this.player.name} is blocking!`);
         }
     }
 
