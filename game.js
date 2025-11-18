@@ -1,3 +1,5 @@
+console.log('🎮 game.js is loading...');
+
 // Game State
 const GameState = {
     LOGIN: 'login',
@@ -9,8 +11,11 @@ const GameState = {
     RANKINGS: 'rankings'
 };
 
+console.log('✅ GameState defined');
+
 class Game {
     constructor() {
+        console.log('🎮 Game constructor called');
         this.state = GameState.LOGIN;
         this.players = [];
         this.networkPlayers = [];
@@ -23,21 +28,31 @@ class Game {
         this.teams = { left: [], right: [] };
         this.currentBattleStats = {};
         this.battleEnded = false;
+        this.isNetworkMode = false; // Track if we're in multiplayer mode
 
+        console.log('📂 Loading players from storage...');
         this.loadPlayersFromStorage();
+        console.log('🎛️  Initializing event listeners...');
         this.initEventListeners();
+        console.log('🌐 Initializing network listeners...');
+        this.initNetworkListeners();
+        console.log('✅ Game initialized successfully');
     }
 
     initEventListeners() {
+        console.log('  → Setting up login screen listeners...');
         // Login screen
         document.getElementById('networkLoginBtn').addEventListener('click', () => this.showNetworkLogin());
         document.getElementById('localPlayBtn').addEventListener('click', () => this.showLocalPlay());
 
-        // Network login screen
-        document.getElementById('mockLoginBtn').addEventListener('click', () => this.mockPlayerLogin());
-        document.getElementById('networkContinueBtn').addEventListener('click', () => this.continueFromNetwork());
-        document.getElementById('backToLoginBtn').addEventListener('click', () => this.showScreen(GameState.LOGIN));
+        console.log('  → Setting up network login screen listeners...');
+        // Network login screen - skip buttons that don't exist
+        const backToLoginBtn = document.getElementById('backToLoginBtn');
+        if (backToLoginBtn) {
+            backToLoginBtn.addEventListener('click', () => this.showScreen(GameState.LOGIN));
+        }
 
+        console.log('  → Setting up estimation screen listeners...');
         // Estimation screen
         document.getElementById('analyzeBtn').addEventListener('click', () => this.analyzeTask());
         document.getElementById('proceedToSetupBtn').addEventListener('click', () => this.proceedToSetup());
@@ -49,6 +64,7 @@ class Game {
             }
         });
 
+        console.log('  → Setting up setup screen listeners...');
         // Setup screen
         document.getElementById('addPlayerBtn').addEventListener('click', () => this.addPlayer());
         document.getElementById('playerName').addEventListener('keypress', (e) => {
@@ -58,6 +74,7 @@ class Game {
         document.getElementById('finishRoundBtn').addEventListener('click', () => this.showRankings());
 
         // Winner screen
+        document.getElementById('returnToLobbyBtn').addEventListener('click', () => this.returnToLobby());
         document.getElementById('editPointsBtn').addEventListener('click', () => this.editStoryPoints());
         document.getElementById('nextBattleBtn').addEventListener('click', () => this.nextBattle());
         document.getElementById('viewRankingsBtn').addEventListener('click', () => this.showRankings());
@@ -87,6 +104,107 @@ class Game {
 
         window.addEventListener('keyup', (e) => {
             this.keys[e.key] = false;
+        });
+
+        console.log('  → Setting up network lobby listeners...');
+        // Network lobby event listeners
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+        const addNetworkPlayerBtn = document.getElementById('addNetworkPlayerBtn');
+        const networkStartBattleBtn = document.getElementById('networkStartBattleBtn');
+        const networkPlayerName = document.getElementById('networkPlayerName');
+        const roomCodeInput = document.getElementById('roomCodeInput');
+
+        console.log('=== Network Button Setup ===');
+        console.log('createRoomBtn element:', createRoomBtn);
+        console.log('networkManager exists:', typeof networkManager !== 'undefined');
+        if (typeof networkManager !== 'undefined') {
+            console.log('networkManager.connected:', networkManager.connected);
+        }
+
+        if (createRoomBtn) {
+            createRoomBtn.addEventListener('click', () => {
+                console.log('🔥 CREATE ROOM BUTTON CLICKED! 🔥');
+                this.createRoom();
+            });
+            console.log('✅ Create room button listener attached successfully');
+        } else {
+            console.error('❌ ERROR: createRoomBtn not found in DOM');
+        }
+
+        if (joinRoomBtn) {
+            joinRoomBtn.addEventListener('click', () => this.joinRoom());
+        }
+
+        if (leaveRoomBtn) {
+            leaveRoomBtn.addEventListener('click', () => this.leaveRoom());
+        }
+
+        if (addNetworkPlayerBtn) {
+            addNetworkPlayerBtn.addEventListener('click', () => this.addNetworkPlayer());
+        }
+
+        if (networkStartBattleBtn) {
+            networkStartBattleBtn.addEventListener('click', () => this.startNetworkBattle());
+        }
+
+        if (networkPlayerName) {
+            networkPlayerName.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.addNetworkPlayer();
+            });
+        }
+
+        if (roomCodeInput) {
+            roomCodeInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        }
+
+        console.log('  ✅ All event listeners set up successfully!');
+    }
+
+    initNetworkListeners() {
+        console.log('  → Checking network manager...');
+        if (typeof networkManager === 'undefined') {
+            console.warn('NetworkManager not available - multiplayer features disabled');
+            return;
+        }
+
+        console.log('Initializing network listeners...');
+
+        // Listen to network events
+        networkManager.on('players-updated', (players) => {
+            this.onNetworkPlayersUpdated(players);
+        });
+
+        networkManager.on('battle-started', (players) => {
+            this.onNetworkBattleStarted(players);
+        });
+
+        networkManager.on('knight-moved', (moveData) => {
+            this.onNetworkKnightMoved(moveData);
+        });
+
+        networkManager.on('knight-attacked', (attackData) => {
+            this.onNetworkKnightAttacked(attackData);
+        });
+
+        networkManager.on('knight-damaged', (damageData) => {
+            this.onNetworkKnightDamaged(damageData);
+        });
+
+        networkManager.on('battle-ended', (winnerData) => {
+            this.onNetworkBattleEnded(winnerData);
+        });
+
+        networkManager.on('became-host', () => {
+            this.updateHostIndicator(true);
+        });
+
+        networkManager.on('player-left', (socketId) => {
+            console.log('Player disconnected:', socketId);
+            // Handle player disconnection during battle if needed
         });
     }
 
@@ -316,43 +434,166 @@ class Game {
     // Login screen methods
     showNetworkLogin() {
         this.showScreen(GameState.NETWORK_LOGIN);
+        this.isNetworkMode = true;
         this.networkPlayers = [];
-        this.updateNetworkPlayersList();
 
-        // Scroll to network info section
-        setTimeout(() => {
-            const networkInfo = document.querySelector('.network-info');
-            if (networkInfo) {
-                networkInfo.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 300);
+        // Show room selection, hide lobby
+        document.getElementById('roomSelection').style.display = 'block';
+        document.getElementById('lobbyContainer').style.display = 'none';
+        document.getElementById('roomInfo').style.display = 'none';
+        document.getElementById('shareInstruction').style.display = 'none';
+
+        this.updateNetworkPlayersList();
     }
 
     showLocalPlay() {
+        this.isNetworkMode = false;
         this.showScreen(GameState.ESTIMATION);
     }
 
-    mockPlayerLogin() {
-        const names = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry'];
-        const points = [1, 2, 3, 5, 8, 13, 21, 34];
+    // Network room management
+    createRoom() {
+        console.log('🚀 createRoom() method called');
+        console.log('typeof networkManager:', typeof networkManager);
 
-        const randomName = names[Math.floor(Math.random() * names.length)];
-        const randomPoints = points[Math.floor(Math.random() * points.length)];
-        const playerName = `${randomName}_${Date.now() % 1000}`;
+        if (typeof networkManager === 'undefined') {
+            console.error('❌ networkManager is undefined');
+            alert('Network manager not initialized. Please make sure the server is running and refresh the page.');
+            return;
+        }
 
-        const player = new Player(playerName, randomPoints);
-        this.networkPlayers.push(player);
+        console.log('networkManager.connected:', networkManager.connected);
+        console.log('networkManager.isConnected():', networkManager.isConnected());
+
+        if (!networkManager.isConnected()) {
+            console.error('❌ Not connected to server');
+            alert('Not connected to server. Please make sure the server is running at http://localhost:3000');
+            return;
+        }
+
+        console.log('✅ All checks passed, calling networkManager.createRoom()...');
+        networkManager.createRoom((response) => {
+            console.log('📥 Create room response:', response);
+            if (response.success) {
+                console.log('✅ Room created successfully:', response.roomCode);
+                this.showLobby(response.roomCode, true);
+            } else {
+                console.error('❌ Failed to create room:', response.error);
+                alert('Failed to create room: ' + response.error);
+            }
+        });
+    }
+
+    joinRoom() {
+        const roomCodeInput = document.getElementById('roomCodeInput');
+        const roomCode = roomCodeInput.value.trim().toUpperCase();
+
+        if (!roomCode) {
+            alert('Please enter a room code');
+            return;
+        }
+
+        networkManager.joinRoom(roomCode, (response) => {
+            if (response.success) {
+                this.showLobby(roomCode, false);
+            } else {
+                alert('Failed to join room: ' + response.error);
+            }
+        });
+    }
+
+    showLobby(roomCode, isHost) {
+        // Hide room selection, show lobby
+        document.getElementById('roomSelection').style.display = 'none';
+        document.getElementById('lobbyContainer').style.display = 'block';
+        document.getElementById('roomInfo').style.display = 'block';
+        document.getElementById('shareInstruction').style.display = 'block';
+
+        // Display room code
+        document.getElementById('roomCodeDisplay').textContent = roomCode;
+
+        // Show host indicator if applicable
+        this.updateHostIndicator(isHost);
+
+        // Clear input fields
+        document.getElementById('networkPlayerName').value = '';
+        document.getElementById('networkFibonacciNumber').value = '';
+    }
+
+    updateHostIndicator(isHost) {
+        const hostIndicator = document.getElementById('hostIndicator');
+        const startButton = document.getElementById('networkStartBattleBtn');
+
+        if (isHost) {
+            hostIndicator.style.display = 'block';
+            startButton.style.display = 'block';
+        } else {
+            hostIndicator.style.display = 'none';
+            startButton.style.display = 'none';
+        }
+    }
+
+    leaveRoom() {
+        networkManager.leaveRoom();
+
+        // Reset UI
+        this.networkPlayers = [];
+        this.showNetworkLogin();
+    }
+
+    addNetworkPlayer() {
+        const nameInput = document.getElementById('networkPlayerName');
+        const fibSelect = document.getElementById('networkFibonacciNumber');
+        const name = nameInput.value.trim();
+        const storyPoints = fibSelect.value;
+
+        if (!name) {
+            alert('Please enter a player name');
+            return;
+        }
+
+        if (!storyPoints) {
+            alert('Please select story points');
+            return;
+        }
+
+        // Create player with unique ID
+        const playerData = {
+            id: `${networkManager.getMySocketId()}-${Date.now()}`,
+            name: name,
+            storyPoints: parseInt(storyPoints),
+            socketId: networkManager.getMySocketId()
+        };
+
+        // Send to server
+        networkManager.addPlayer(playerData);
+
+        // Clear inputs
+        nameInput.value = '';
+        fibSelect.value = '';
+    }
+
+    onNetworkPlayersUpdated(players) {
+        // Update local network players list
+        this.networkPlayers = players.map(p => {
+            // Create Player instances with stats
+            return new Player(p.name, p.storyPoints, p.id, p.socketId);
+        });
+
         this.updateNetworkPlayersList();
 
-        const continueBtn = document.getElementById('networkContinueBtn');
-        continueBtn.disabled = this.networkPlayers.length < 2;
+        // Update start button state (only for host)
+        if (networkManager.isHost) {
+            const startButton = document.getElementById('networkStartBattleBtn');
+            startButton.disabled = this.networkPlayers.length < 2;
+        }
     }
 
     updateNetworkPlayersList() {
         const list = document.getElementById('networkPlayersList');
 
         if (this.networkPlayers.length === 0) {
-            list.innerHTML = '<p class="waiting-message">Waiting for players to connect...</p>';
+            list.innerHTML = '<p class="waiting-message">Waiting for players to join...</p>';
             return;
         }
 
@@ -360,28 +601,119 @@ class Game {
         this.networkPlayers.forEach((player) => {
             const item = document.createElement('div');
             item.className = 'network-player-item';
+            const isMe = player.socketId === networkManager.getMySocketId();
+
             item.innerHTML = `
-                <span><strong>${player.name}</strong> - Story Points: ${player.storyPoints}</span>
-                <span>✓ Connected</span>
+                <div style="flex: 1;">
+                    <div><strong>${player.name}</strong> ${isMe ? '(You)' : ''} - Story Points: ${player.storyPoints}</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.6);">HP: ${player.maxHp}, Dmg: ${player.damage}, Range: ${player.attackRange}</div>
+                </div>
+                ${isMe ? `<button onclick="game.removeNetworkPlayer('${player.id}')" style="background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;">Remove</button>` : ''}
             `;
             list.appendChild(item);
         });
     }
 
-    continueFromNetwork() {
-        this.players = [...this.networkPlayers];
-        this.savePlayersToStorage();
-        this.showScreen(GameState.SETUP);
-        this.updatePlayersList();
-        this.updateStartButton();
+    removeNetworkPlayer(playerId) {
+        if (networkManager) {
+            networkManager.removePlayer(playerId);
+        }
+    }
 
-        // Scroll to player list
-        setTimeout(() => {
-            const playersList = document.getElementById('playersList');
-            if (playersList) {
-                playersList.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }, 300);
+    startNetworkBattle() {
+        if (this.networkPlayers.length < 2) {
+            alert('Need at least 2 players to start battle');
+            return;
+        }
+
+        // Host generates initial knight positions
+        if (networkManager.isHost) {
+            const initialPositions = this.generateKnightPositions(this.networkPlayers.length);
+            // Send positions along with battle start
+            networkManager.socket.emit('start-battle-with-positions', { positions: initialPositions });
+        }
+    }
+
+    generateKnightPositions(count) {
+        const positions = [];
+        const margin = 80;
+        const minDistance = 60;
+        const canvasWidth = 1400;
+        const canvasHeight = 800;
+
+        for (let i = 0; i < count; i++) {
+            let attempts = 0;
+            let pos;
+            do {
+                pos = {
+                    x: margin + Math.random() * (canvasWidth - margin * 2),
+                    y: margin + Math.random() * (canvasHeight - margin * 2),
+                    rotation: Math.random() * Math.PI * 2
+                };
+                attempts++;
+            } while (attempts < 100 && positions.some(p => {
+                const dx = p.x - pos.x;
+                const dy = p.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) < minDistance;
+            }));
+            positions.push(pos);
+        }
+        return positions;
+    }
+
+    onNetworkBattleStarted(players, positions) {
+        // All clients receive this and start battle with synchronized positions
+        this.players = this.networkPlayers;
+        this.initialKnightPositions = positions; // Store for setupAllKnights
+        this.startBattle();
+    }
+
+    onNetworkKnightMoved(moveData) {
+        // Find the knight that moved by player ID
+        const knight = this.battleKnights.find(k => k.player.id === moveData.playerId);
+        if (knight && knight.player.socketId !== networkManager.getMySocketId()) {
+            // Only update if it's not our own knight
+            knight.x = moveData.x;
+            knight.y = moveData.y;
+            knight.rotation = moveData.rotation;
+        }
+    }
+
+    onNetworkKnightAttacked(attackData) {
+        // Find the knight that attacked by socket ID
+        const attacker = this.battleKnights.find(k => k.player.socketId === attackData.socketId);
+        if (!attacker) return;
+
+        // Trigger attack animation
+        attacker.isAttacking = true;
+        attacker.swordSwingActive = true;
+        attacker.swordSwingProgress = 0;
+        attacker.damageAppliedThisSwing = false;
+    }
+
+    onNetworkKnightDamaged(damageData) {
+        // Find target knight
+        const target = this.battleKnights.find(k => k.player.id === damageData.targetId);
+        if (!target) return;
+
+        // Apply damage
+        target.hp = damageData.newHp;
+
+        // Log
+        this.log(`${damageData.attackerName} hit ${damageData.targetName} for ${damageData.damage} damage!`);
+
+        // Check if killed
+        if (!target.isAlive()) {
+            this.log(`💀 ${target.player.name} was defeated!`);
+        }
+    }
+
+    onNetworkBattleEnded(winnerData) {
+        // Sync battle end
+        if (!this.battleEnded) {
+            this.battleEnded = true;
+            this.endBattle(winnerData.winningTeam);
+        }
     }
 
     addPlayer() {
@@ -589,23 +921,48 @@ class Game {
             return getRandomPosition();
         };
 
-        // Spawn left team randomly
+        let positionIndex = 0;
+
+        // Spawn left team
         this.teams.left.forEach((player) => {
-            const pos = findValidPosition();
+            let pos, rotation;
+            if (this.initialKnightPositions && positionIndex < this.initialKnightPositions.length) {
+                // Use synchronized positions (network mode)
+                const syncPos = this.initialKnightPositions[positionIndex];
+                pos = { x: syncPos.x, y: syncPos.y };
+                rotation = syncPos.rotation;
+                positionIndex++;
+            } else {
+                // Generate random position (local mode)
+                pos = findValidPosition();
+                rotation = Math.random() * Math.PI * 2;
+            }
             const knight = new Knight(player, pos.x, pos.y, leftColor, 'left');
-            // Randomize initial rotation
-            knight.rotation = Math.random() * Math.PI * 2;
+            knight.rotation = rotation;
             this.battleKnights.push(knight);
         });
 
-        // Spawn right team randomly
+        // Spawn right team
         this.teams.right.forEach((player) => {
-            const pos = findValidPosition();
+            let pos, rotation;
+            if (this.initialKnightPositions && positionIndex < this.initialKnightPositions.length) {
+                // Use synchronized positions (network mode)
+                const syncPos = this.initialKnightPositions[positionIndex];
+                pos = { x: syncPos.x, y: syncPos.y };
+                rotation = syncPos.rotation;
+                positionIndex++;
+            } else {
+                // Generate random position (local mode)
+                pos = findValidPosition();
+                rotation = Math.random() * Math.PI * 2;
+            }
             const knight = new Knight(player, pos.x, pos.y, rightColor, 'right');
-            // Randomize initial rotation
-            knight.rotation = Math.random() * Math.PI * 2;
+            knight.rotation = rotation;
             this.battleKnights.push(knight);
         });
+
+        // Clear synchronized positions after use
+        this.initialKnightPositions = null;
 
         // Update HUD
         document.getElementById('currentMatch').textContent =
@@ -632,12 +989,38 @@ class Game {
         // Update all knights
         this.battleKnights.forEach((knight, index) => {
             if (knight.isAlive()) {
-                // First knight is player-controlled
-                if (index === 0) {
+                // In network mode: control your own knights (by socketId)
+                // In local mode: control first knight only
+                const isMyKnight = this.isNetworkMode
+                    ? (knight.player.socketId === networkManager.getMySocketId())
+                    : (index === 0);
+
+                if (isMyKnight) {
+                    // Player-controlled: respond to keyboard input
+                    const oldX = knight.x;
+                    const oldY = knight.y;
+                    const oldRotation = knight.rotation;
+
                     knight.update(this.keys, this.canvas.width, this.canvas.height);
-                } else {
+
+                    // In network mode, broadcast position if moved
+                    if (this.isNetworkMode && (oldX !== knight.x || oldY !== knight.y || oldRotation !== knight.rotation)) {
+                        networkManager.sendKnightMove({
+                            playerId: knight.player.id,
+                            x: knight.x,
+                            y: knight.y,
+                            rotation: knight.rotation
+                        });
+                    }
+                } else if (!this.isNetworkMode) {
+                    // Local mode: AI controls other knights
                     knight.updateAI(this.battleKnights, this.canvas.width, this.canvas.height);
                 }
+                // In network mode, other players' knights don't move locally
+                // They wait for position updates from the network
+
+                // Update cooldowns (this should always run)
+                knight.updateCooldowns();
 
                 // Handle attacks
                 if (knight.isAttacking) {
@@ -725,6 +1108,18 @@ class Game {
                 if (!blocked) {
                     const damage = attacker.player.damage;
                     target.takeDamage(damage);
+
+                    // Network sync: Send damage event
+                    if (this.isNetworkMode && typeof networkManager !== 'undefined') {
+                        networkManager.sendKnightDamage({
+                            attackerId: attacker.player.id,
+                            attackerName: attacker.player.name,
+                            targetId: target.player.id,
+                            targetName: target.player.name,
+                            damage: damage,
+                            newHp: target.hp
+                        });
+                    }
 
                     // Track damage dealt
                     if (!this.currentBattleStats[attacker.player.name]) {
@@ -887,6 +1282,29 @@ class Game {
 
         const display = document.getElementById('winnerDisplay');
 
+        // Show/hide buttons based on mode
+        const returnToLobbyBtn = document.getElementById('returnToLobbyBtn');
+        const editPointsBtn = document.getElementById('editPointsBtn');
+        const nextBattleBtn = document.getElementById('nextBattleBtn');
+        const viewRankingsBtn = document.getElementById('viewRankingsBtn');
+        const newTournamentBtn = document.getElementById('newTournamentBtn');
+
+        if (this.isNetworkMode) {
+            // Network mode: show return to lobby, hide local-only buttons
+            returnToLobbyBtn.style.display = 'block';
+            editPointsBtn.style.display = 'none';
+            nextBattleBtn.style.display = 'none';
+            viewRankingsBtn.style.display = 'none';
+            newTournamentBtn.style.display = 'block'; // Keep back to start
+        } else {
+            // Local mode: hide return to lobby, show all local buttons
+            returnToLobbyBtn.style.display = 'none';
+            editPointsBtn.style.display = 'block';
+            nextBattleBtn.style.display = 'block';
+            viewRankingsBtn.style.display = 'block';
+            newTournamentBtn.style.display = 'block';
+        }
+
         // Scroll to winner display after a brief delay
         setTimeout(() => {
             const winnerScreen = document.getElementById('winnerScreen');
@@ -990,6 +1408,26 @@ class Game {
                 }
             }, 300);
         });
+    }
+
+    returnToLobby() {
+        // For network mode: return to lobby, keep all players
+        this.currentBattleStats = {};
+        this.battleEnded = false;
+
+        // Show the network lobby screen
+        this.showScreen(GameState.NETWORK_LOGIN);
+
+        // Show lobby container (not room selection)
+        document.getElementById('roomSelection').style.display = 'none';
+        document.getElementById('lobbyContainer').style.display = 'block';
+        document.getElementById('roomInfo').style.display = 'block';
+        document.getElementById('shareInstruction').style.display = 'block';
+
+        // Players are still in networkPlayers array
+        this.updateNetworkPlayersList();
+
+        console.log('Returned to lobby with', this.networkPlayers.length, 'players');
     }
 
     nextBattle() {
@@ -1178,9 +1616,11 @@ class Game {
 }
 
 class Player {
-    constructor(name, storyPoints) {
+    constructor(name, storyPoints, id = null, socketId = null) {
         this.name = name;
         this.storyPoints = storyPoints;
+        this.id = id || `${name}-${Date.now()}`;
+        this.socketId = socketId; // For multiplayer
         this.stats = this.generateStats();
 
         // Base stats
@@ -1464,6 +1904,16 @@ class Knight {
             this.swordSwingActive = true;
             this.swordSwingProgress = 0;
             this.damageAppliedThisSwing = false;
+
+            // Network sync: Send attack event
+            if (game.isNetworkMode && typeof networkManager !== 'undefined') {
+                networkManager.sendKnightAttack({
+                    playerId: this.player.id,
+                    x: this.x,
+                    y: this.y,
+                    rotation: this.rotation
+                });
+            }
         }
     }
 
@@ -1751,5 +2201,13 @@ class Knight {
     }
 }
 
-// Initialize game
-const game = new Game();
+// Initialize game when DOM is ready
+let game;
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        game = new Game();
+    });
+} else {
+    game = new Game();
+}

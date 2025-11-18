@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Point Knights Team Battle</title>
+    <title>Story Point Arena</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="app">
         <!-- Login Mode Selection Screen -->
         <div id="loginScreen" class="screen active">
-            <h1>Story Point Knights Team Battle</h1>
+            <h1>Story Point Arena</h1>
             <div class="login-container">
                 <div class="login-option">
                     <button id="networkLoginBtn" class="mode-btn network-btn">
@@ -31,24 +31,67 @@
 
         <!-- Network Login Screen -->
         <div id="networkLoginScreen" class="screen">
-            <h1>🌐 Network Login</h1>
+            <h1>🌐 Multiplayer Lobby</h1>
             <div class="network-login-container">
+                <!-- Connection Status -->
                 <div class="network-info">
-                    <p class="network-status">🟢 Server Ready</p>
-                    <p class="network-url">Session URL: <strong>http://game.local/session/ABC123</strong></p>
-                    <p class="network-instruction">Share this URL with other players to join!</p>
+                    <p id="connectionStatus" class="network-status">🔴 Connecting to server...</p>
+                    <p id="roomInfo" class="network-url" style="display:none;">Room Code: <strong id="roomCodeDisplay"></strong></p>
+                    <p id="shareInstruction" class="network-instruction" style="display:none;">Share this code with other players to join!</p>
                 </div>
-                <div class="logged-in-players">
-                    <h3>Logged In Players</h3>
+
+                <!-- Room Actions (before joining a room) -->
+                <div id="roomSelection" class="room-selection">
+                    <h3>Join or Create a Room</h3>
+                    <div class="room-input-group">
+                        <input type="text" id="roomCodeInput" placeholder="Enter room code" maxlength="6" style="text-transform: uppercase;">
+                        <button id="joinRoomBtn" class="action-btn">Join Room</button>
+                    </div>
+                    <div class="or-divider">
+                        <span>OR</span>
+                    </div>
+                    <button id="createRoomBtn" class="start-btn">Create New Room</button>
+                </div>
+
+                <!-- Lobby (after joining a room) -->
+                <div id="lobbyContainer" style="display:none;">
+                    <div class="lobby-header">
+                        <h3>Players in Lobby</h3>
+                        <p id="hostIndicator" class="host-indicator" style="display:none;">👑 You are the host</p>
+                    </div>
                     <div id="networkPlayersList" class="network-players-list">
-                        <p class="waiting-message">Waiting for players to connect...</p>
+                        <p class="waiting-message">Waiting for players to join...</p>
+                    </div>
+
+                    <!-- Add Player Section (visible to all) -->
+                    <div class="add-player-section">
+                        <h4>Add Your Player</h4>
+                        <div class="input-group">
+                            <input type="text" id="networkPlayerName" placeholder="Your name" maxlength="20">
+                            <select id="networkFibonacciNumber">
+                                <option value="">Story Points</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="5">5</option>
+                                <option value="8">8</option>
+                                <option value="13">13</option>
+                                <option value="21">21</option>
+                                <option value="34">34</option>
+                                <option value="55">55</option>
+                                <option value="89">89</option>
+                            </select>
+                            <button id="addNetworkPlayerBtn" class="action-btn">Add Player</button>
+                        </div>
+                    </div>
+
+                    <div class="network-actions">
+                        <button id="networkStartBattleBtn" class="start-btn" disabled>Start Battle →</button>
+                        <button id="leaveRoomBtn" class="back-btn">← Leave Room</button>
                     </div>
                 </div>
-                <div class="network-actions">
-                    <button id="mockLoginBtn" class="action-btn">+ Mock Player Login (Demo)</button>
-                    <button id="networkContinueBtn" class="start-btn" disabled>Continue to Game →</button>
-                    <button id="backToLoginBtn" class="back-btn">← Back</button>
-                </div>
+
+                <button id="backToLoginBtn" class="back-btn">← Back</button>
             </div>
         </div>
 
@@ -77,7 +120,7 @@
 
         <!-- Setup Screen -->
         <div id="setupScreen" class="screen">
-            <h1>Story Point Knights Team Battle</h1>
+            <h1>Story Point Arena</h1>
             <div class="setup-container">
                 <div class="player-input-section">
                     <h2>Add Players (Max 20)</h2>
@@ -182,7 +225,9 @@
         <div id="winnerScreen" class="screen">
             <h1>🏆 Victory! 🏆</h1>
             <div id="winnerDisplay" class="winner-display"></div>
-            <div class="winner-actions">
+            <div class="winner-actions" id="winnerActions">
+                <!-- Buttons will be dynamically shown based on mode -->
+                <button id="returnToLobbyBtn" class="start-btn" style="display:none;">🔄 Return to Lobby</button>
                 <button id="editPointsBtn" class="edit-btn">✏️ Edit Story Points</button>
                 <button id="nextBattleBtn" class="start-btn">Next Battle →</button>
                 <button id="viewRankingsBtn" class="start-btn">View Rankings →</button>
@@ -191,6 +236,11 @@
         </div>
     </div>
 
+    <!-- Socket.io client library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Network manager (must load before game.js) -->
+    <script src="network.js"></script>
+    <!-- Main game logic -->
     <script src="game.js"></script>
 </body>
 </html>

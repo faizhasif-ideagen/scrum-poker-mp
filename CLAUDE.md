@@ -4,14 +4,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Story Point Knights Team Battle is a browser-based team combat game where ALL players fight simultaneously on screen. Players with the same story point values (Fibonacci sequence) form teams that battle left vs right. Each player has randomly generated stats, and team coordination with fast-paced movement determines victory.
+Story Point Arena is a **real-time multiplayer** browser-based team combat game where ALL players fight simultaneously on screen. Players connect from different devices via WebSocket, join rooms using codes, and battle in real-time. Players with the same story point values (Fibonacci sequence) form teams that battle left vs right. Each player has randomly generated stats, and team coordination with fast-paced movement determines victory.
+
+### Multiplayer Architecture
+- **Backend**: Node.js + Express + Socket.io server managing rooms and real-time events
+- **Frontend**: Vanilla JavaScript with Socket.io client for WebSocket communication
+- **Rooms**: Unique 6-character codes for isolated game sessions
+- **Real-time Sync**: All attacks, damage, and game state synchronized across clients
 
 ## Development Commands
 
-### Running
+### Running Multiplayer (Recommended)
+```bash
+# Install dependencies
+npm install
+
+# Start server (production)
+npm start
+
+# Start server (development with auto-reload)
+npm run dev
+```
+
+Server runs on http://localhost:3000 (or PORT environment variable)
+
+### Running Local Mode
 ```bash
 # Open index.html directly in a web browser
-# No build step or dependencies required - pure HTML/CSS/JavaScript
+# Works offline without the Node.js server
 ```
 
 ## Architecture
@@ -22,16 +42,30 @@ Single-page application with vanilla JavaScript, no frameworks or build tools. A
 
 ### Key Files
 
-- `index.html` - Main application structure with 3 screen states (Setup, Battle, Winner)
-- `styles.css` - Complete styling including animations, responsive layout, and visual effects
-- `game.js` - All game logic including state management, team system, AI behavior, battle mechanics, and rendering
+- `index.html` - Main application structure with multiple screen states (Login, Network Lobby, Estimation, Setup, Battle, Winner, Rankings)
+- `styles.css` - Complete styling including animations, responsive layout, visual effects, and multiplayer UI
+- `game.js` - All game logic including state management, team system, AI behavior, battle mechanics, rendering, and network event handlers
+- `network.js` - Client-side networking manager using Socket.io for real-time communication
+- `server.js` - Node.js backend server with Express and Socket.io for room management and event broadcasting
+- `package.json` - Node.js dependencies and scripts
 
 ### Core Concepts
 
-**Game State Management**: The game uses a finite state machine with three states:
-- SETUP: Player registration with story points selection
+**Game State Management**: The game uses a finite state machine with multiple states:
+- LOGIN: Choose between Network Play or Local Play
+- NETWORK_LOGIN: Multiplayer lobby (create/join rooms, add players)
+- ESTIMATION: AI-powered story point estimation (local mode)
+- SETUP: Player registration with story points selection (local mode)
 - BATTLE: Real-time team combat on HTML5 canvas with ALL players displayed
 - WINNER: Winning team display
+- RANKINGS: Player statistics and leaderboard
+
+**Multiplayer Mode** (`isNetworkMode` flag):
+- Uses Socket.io for real-time bidirectional communication
+- Room-based sessions with unique 6-character codes
+- Host controls battle start
+- All events (attacks, damage, battle end) synchronized across clients
+- Graceful handling of player disconnections
 
 **Team System**:
 - Supports 2-20 players total
@@ -87,11 +121,36 @@ Global `game` object manages all state:
 
 ## Classes
 
-**Game**: Main controller managing screens, team creation, battle coordination, and AI updates for all knights
+**Game**: Main controller managing screens, team creation, battle coordination, AI updates, and network event handlers
 
-**Player**: Stores name, story points, and generated stats with calculated maxHp and damage
+**Player**: Stores name, story points, generated stats, and network identifiers (id, socketId for multiplayer)
 
-**Knight**: Battle entity with position, HP, team affiliation, movement (player OR AI), attack logic, and rendering. Includes AI behavior methods for autonomous combat.
+**Knight**: Battle entity with position, HP, team affiliation, movement (player OR AI), attack logic, rendering, and AI behavior
+
+**NetworkManager** (network.js): Singleton managing Socket.io connection, room operations, and event broadcasting/receiving
+
+## Network Events
+
+### Server → Client
+- `players-updated`: Room player list changed
+- `player-joined`: New player connected
+- `player-left`: Player disconnected
+- `battle-started`: Host started battle
+- `knight-attacked`: Knight performed attack
+- `knight-damaged`: Knight took damage
+- `battle-ended`: Battle finished
+- `you-are-host`: Client became room host
+
+### Client → Server
+- `create-room`: Create new game room
+- `join-room`: Join existing room
+- `add-player`: Add character to room
+- `remove-player`: Remove character
+- `start-battle`: Host starts game
+- `knight-attack`: Broadcast attack
+- `knight-damage`: Broadcast damage
+- `battle-ended`: Broadcast battle end
+- `leave-room`: Exit current room
 
 ## Configuration
 
@@ -109,7 +168,17 @@ No configuration files needed. Game settings are hardcoded:
 
 ## Dependencies
 
-None - pure vanilla JavaScript with no external libraries or frameworks.
+### Frontend (Client)
+- Socket.io client (loaded from server at runtime)
+- Pure vanilla JavaScript - no frameworks
+
+### Backend (Server)
+- Node.js (v14+)
+- express: ^4.18.2 - Web server framework
+- socket.io: ^4.6.1 - WebSocket library for real-time communication
+
+### Dev Dependencies
+- nodemon: ^3.0.1 - Auto-restart server during development
 
 ## Additional Notes
 

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(lsof:*)",
+      "Bash(sudo /usr/libexec/ApplicationFirewall/socketfilterfw:*)",
+      "Bash(xargs kill -9)",
+      "Bash(npm start)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,24 +1,32 @@
-# Story Point Knights Team Battle
+# Story Point Arena
 
-A browser-based team combat game where ALL players fight simultaneously on screen in fast-paced battles.
+A **multiplayer online** team combat game where ALL players fight simultaneously on screen in fast-paced battles. Play with friends across different devices!
 
-![Game Type](https://img.shields.io/badge/Type-Browser%20Game-blue)
-![No Dependencies](https://img.shields.io/badge/Dependencies-None-green)
+![Game Type](https://img.shields.io/badge/Type-Multiplayer%20Game-blue)
+![Technology](https://img.shields.io/badge/Tech-Node.js%20%7C%20Socket.io-green)
 ![Players](https://img.shields.io/badge/Players-2--20-orange)
+![Network](https://img.shields.io/badge/Network-Real--time%20Multiplayer-red)
 
 ## Overview
 
-Story Point Knights Team Battle is a chaotic, action-packed game where:
-- ALL players displayed and fighting on screen at once
-- Players with same story points = teammates
-- Teams automatically split left vs right
-- Fast movement and simultaneous combat
-- Player controls one knight, AI controls the rest
-- Same team cannot attack each other
-- Last team standing wins!
+Story Point Arena is a **real-time multiplayer** combat game where:
+- 🌐 **Play online with friends** - Connect from different devices worldwide
+- 🎮 **Lobby system** - Create or join rooms with unique codes
+- ⚔️ **Real-time battles** - ALL players fight simultaneously on screen
+- 👥 **Team-based combat** - Players with same story points = teammates
+- 🤖 **AI opponents** - Each player controls one knight, others are AI
+- 🏆 **Last team standing wins** - Coordinate with your team to victory!
 
 ## Features
 
+### 🌐 Multiplayer Features
+- **Online Multiplayer**: Play with friends from anywhere in the world
+- **Room System**: Create or join games with simple 6-character room codes
+- **Real-time Sync**: All actions synchronized instantly across all players
+- **Lobby System**: See players join in real-time before battle starts
+- **Host Controls**: Room creator manages when to start battles
+
+### ⚔️ Battle Features
 - **Team-Based Combat**: Same story points = teammates, auto-split into left vs right
 - **All Players On Screen**: Every knight displayed and fighting simultaneously
 - **Beautiful Knight Graphics**: Shield + helmet design with team colors and cross emblem
@@ -28,41 +36,48 @@ Story Point Knights Team Battle is a chaotic, action-packed game where:
 - **Smart AI**: All non-player knights autonomously seek and attack enemies
 - **Team Protection**: Same team cannot damage each other
 - **Simple Controls**: Arrow keys for movement, space bar to attack
-- **No Installation**: Runs directly in any modern web browser
 
 ## How to Launch
 
-### Method 1: Double-Click (Easiest)
-1. Navigate to the game folder
-2. Double-click `index.html`
-3. The game will open in your default web browser
+### 🌐 Multiplayer Mode (Recommended)
 
-### Method 2: Open from Browser
-1. Open your web browser (Chrome, Firefox, Safari, Edge)
-2. Press `Ctrl+O` (Windows/Linux) or `Cmd+O` (Mac)
-3. Navigate to and select `index.html`
-4. Click "Open"
+**Play online with friends from different devices!**
 
-### Method 3: Drag and Drop
-1. Open your web browser
-2. Drag `index.html` into the browser window
-3. Drop to launch
+1. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
 
-### Method 4: Local Server (Optional)
-If you prefer using a local server:
+2. **Start the Server:**
+   ```bash
+   npm start
+   ```
 
-**Python 3:**
+3. **Open in Browser:**
+   - Go to `http://localhost:3000`
+   - Click "Network Play"
+   - Create or join a room
+   - Share the room code with friends!
+
+4. **For Online Play:**
+   - See [MULTIPLAYER_SETUP.md](MULTIPLAYER_SETUP.md) for deployment options
+   - Deploy to Railway, Render, Fly.io, or Glitch for free
+   - Share your public URL with players worldwide!
+
+### 🏠 Local Mode (Single Device)
+
+**Play solo or pass-and-play on one device:**
+
+1. Double-click `index.html` to open in your browser
+2. Click "Local Play"
+3. Add all players and battle!
+
+**Or use a local server:**
 ```bash
+# Python 3
 python -m http.server 8000
-```
 
-**Python 2:**
-```bash
-python -m SimpleHTTPServer 8000
-```
-
-**Node.js (http-server):**
-```bash
+# Node.js
 npx http-server
 ```
 
@@ -143,24 +158,40 @@ Works on all modern browsers:
 
 ## Technical Details
 
-- **No Dependencies**: Pure HTML, CSS, and JavaScript
-- **No Build Process**: Works immediately without compilation
-- **No Internet Required**: Fully offline capable
+### Frontend
+- **Pure JavaScript**: No frameworks required
 - **Canvas-Based**: Smooth 60 FPS rendering at 1400×800px
-- **Custom Graphics**: Hand-drawn knight shields and helmets with team colors
+- **Socket.io Client**: Real-time WebSocket communication
+- **Custom Graphics**: Hand-drawn knight shields and helmets
 - **Directional Combat**: Cone-based hit detection with angle calculations
-- **AI System**: Autonomous knight behavior with target acquisition and facing
-- **Team Logic**: Smart attack validation prevents friendly fire
+- **AI System**: Autonomous knight behavior for non-controlled knights
+
+### Backend (Multiplayer)
+- **Node.js**: Server runtime environment
+- **Express**: Web server framework
+- **Socket.io**: WebSocket library for real-time communication
+- **Room Management**: Isolated game sessions with unique codes
+- **Event System**: Synchronizes attacks, damage, and game state
+
+### Network Architecture
+- **WebSocket Protocol**: Low-latency bidirectional communication
+- **Event-driven**: All actions broadcast to room participants
+- **Client Authority**: Damage calculated on client, synced to all
+- **Stateless Rooms**: No database needed, all data in memory
 
 ## File Structure
 
 ```
-Story Point Knights Team Battle/
-├── index.html    # Main game structure (3 screens)
-├── styles.css    # Visual styling and animations
-├── game.js       # Game logic, AI, team system
-├── CLAUDE.md     # Developer documentation
-└── README.md     # This file
+Story Point Arena/
+├── index.html             # Main game structure & UI
+├── styles.css             # Visual styling and animations
+├── game.js                # Game logic, AI, battle mechanics
+├── network.js             # Client-side networking (Socket.io)
+├── server.js              # Node.js backend server
+├── package.json           # Node.js dependencies
+├── README.md              # This file
+├── MULTIPLAYER_SETUP.md   # Deployment guide
+└── CLAUDE.md              # Developer documentation
 ```
 
 ## Troubleshooting
