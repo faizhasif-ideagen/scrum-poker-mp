@@ -8,8 +8,52 @@
 </head>
 <body>
     <div id="app">
+        <!-- Login Mode Selection Screen -->
+        <div id="loginScreen" class="screen active">
+            <h1>Story Point Knights Team Battle</h1>
+            <div class="login-container">
+                <div class="login-option">
+                    <button id="networkLoginBtn" class="mode-btn network-btn">
+                        <span class="btn-icon">🌐</span>
+                        <span class="btn-title">Network Play</span>
+                        <span class="btn-desc">Multiple players login from different devices</span>
+                    </button>
+                </div>
+                <div class="login-option">
+                    <button id="localPlayBtn" class="mode-btn local-btn">
+                        <span class="btn-icon">🎮</span>
+                        <span class="btn-title">Local Play</span>
+                        <span class="btn-desc">Single device with saved players</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Login Screen -->
+        <div id="networkLoginScreen" class="screen">
+            <h1>🌐 Network Login</h1>
+            <div class="network-login-container">
+                <div class="network-info">
+                    <p class="network-status">🟢 Server Ready</p>
+                    <p class="network-url">Session URL: <strong>http://game.local/session/ABC123</strong></p>
+                    <p class="network-instruction">Share this URL with other players to join!</p>
+                </div>
+                <div class="logged-in-players">
+                    <h3>Logged In Players</h3>
+                    <div id="networkPlayersList" class="network-players-list">
+                        <p class="waiting-message">Waiting for players to connect...</p>
+                    </div>
+                </div>
+                <div class="network-actions">
+                    <button id="mockLoginBtn" class="action-btn">+ Mock Player Login (Demo)</button>
+                    <button id="networkContinueBtn" class="start-btn" disabled>Continue to Game →</button>
+                    <button id="backToLoginBtn" class="back-btn">← Back</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Story Estimation Screen -->
-        <div id="estimationScreen" class="screen active">
+        <div id="estimationScreen" class="screen">
             <h1>📝 Story Point Estimator</h1>
             <div class="estimation-container">
                 <div class="estimation-input-section">
@@ -61,15 +105,59 @@
                     <ul>
                         <li>Add 2-20 players with story point values</li>
                         <li>Players with same story points = SAME TEAM</li>
-                        <li>Teams split: Left vs Right side</li>
-                        <li>ALL players shown on screen at once!</li>
-                        <li>You control first knight (Arrow Keys + SPACE)</li>
+                        <li>Teams: Red vs Cyan (based on story points)</li>
+                        <li>ALL players spawn randomly on the battlefield!</li>
+                        <li>You control first knight (Arrow Keys/WASD + Q/E + SPACE)</li>
                         <li>AI controls the rest automatically</li>
+                        <li>Attacks are DIRECTIONAL - face your target!</li>
+                        <li>Use Q/E to rotate and aim your attacks</li>
+                        <li>Press C to BLOCK attacks from your front!</li>
+                        <li>Sword swipes deal damage mid-swing</li>
+                        <li>Random attack ranges (40-78 pixels)</li>
                         <li>Same team CANNOT attack each other</li>
                         <li>Last team standing wins!</li>
                     </ul>
                     <div id="startError" class="start-error"></div>
                     <button id="startTournamentBtn" class="start-btn" disabled>Start Battle</button>
+                    <button id="finishRoundBtn" class="finish-btn">Finish Round & View Rankings →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rankings Screen -->
+        <div id="rankingsScreen" class="screen">
+            <h1>📊 Rankings & Statistics</h1>
+            <div class="rankings-container">
+                <div class="top-scorer-section">
+                    <h2>🏆 Top Scorer</h2>
+                    <div id="topScorer" class="top-scorer-display"></div>
+                </div>
+                <div class="rankings-table-section">
+                    <h2>Player Rankings</h2>
+                    <table id="rankingsTable" class="rankings-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Story Points</th>
+                                <th>Games</th>
+                                <th>Wins</th>
+                                <th>Kills</th>
+                                <th>Damage</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankingsTableBody">
+                        </tbody>
+                    </table>
+                    <p style="text-align: center; margin-top: 20px; color: rgba(255,255,255,0.7); font-size: 14px;">
+                        * Stats are cumulative across all battles. Score = (Kills × 10) + (Wins × 50) + (Damage ÷ 10)
+                    </p>
+                </div>
+                <div class="rankings-actions">
+                    <button id="backToSetupBtn" class="start-btn">← Back to Setup</button>
+                    <button id="resetStatsBtn" class="reset-btn">Reset Statistics Only</button>
+                    <button id="clearAllDataBtn" class="reset-btn" style="background: rgba(139, 0, 0, 0.3); border-color: #8B0000;">Clear All Data & Players</button>
                 </div>
             </div>
         </div>
@@ -83,7 +171,9 @@
             <canvas id="gameCanvas"></canvas>
             <div id="battleLog" class="battle-log"></div>
             <div class="controls-hint">
-                <span>Move: ↑↓←→</span>
+                <span>Move: ↑↓←→ or WASD</span>
+                <span>Rotate: Q/E</span>
+                <span>Block: C</span>
                 <span>Attack: SPACE</span>
             </div>
         </div>
@@ -92,7 +182,12 @@
         <div id="winnerScreen" class="screen">
             <h1>🏆 Victory! 🏆</h1>
             <div id="winnerDisplay" class="winner-display"></div>
-            <button id="newTournamentBtn" class="start-btn">← Back to Story Estimator</button>
+            <div class="winner-actions">
+                <button id="editPointsBtn" class="edit-btn">✏️ Edit Story Points</button>
+                <button id="nextBattleBtn" class="start-btn">Next Battle →</button>
+                <button id="viewRankingsBtn" class="start-btn">View Rankings →</button>
+                <button id="newTournamentBtn" class="back-btn">← Back to Start</button>
+            </div>
         </div>
     </div>
 

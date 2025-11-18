@@ -41,24 +41,30 @@ Single-page application with vanilla JavaScript, no frameworks or build tools. A
 - All players spawn and fight simultaneously on screen
 
 **Player Stats System**:
-- Base stats: 20 HP, 5 damage
+- Base stats: 20 HP, 5 damage, 80 attack range
 - 5 random stat levels (1-5) applied to each player at creation:
   - Stat 0: HP bonus (level × 3)
   - Stat 1: Damage bonus (level × 2)
   - Stat 2: Combined HP and damage (level × 1 each)
-  - Stat 3: Extra HP (level × 2)
+  - Stat 3: Attack Range (level × 15) - affects how far they can attack
   - Stat 4: Extra damage (level × 1.5)
 - Stats are randomly generated and permanent for each player
+- Attack range varies from 95 to 155 pixels based on stat level
 
 **Battle Mechanics**:
 - Canvas-based rendering at 1400×800px with grid background and center dividing line
 - ALL knights displayed on screen simultaneously
+- Knights rendered as shield + helmet with cross emblem (team colored)
 - First knight (index 0) is player-controlled with arrow keys + WASD and space to attack
 - All other knights are AI-controlled with autonomous combat behavior
 - AI seeks closest enemy, moves toward them, and attacks when in range
-- Fast movement: 8 pixels per frame (vs previous 3)
-- Attack range: 100px radius circle
-- Attack cooldown: 20 frames (~0.33 seconds)
+- Very slow, tactical movement: 1.25 pixels per frame
+- **Directional Attacks**: Knights attack in a forward-facing 60° cone
+  - Must face target to hit them (tracked by movement direction)
+  - Attack range varies per player (80-155 pixels based on stats)
+  - Visual: Semi-transparent cone shows attack arc when attacking
+  - Hit detection: Checks both distance AND angle to target
+- Attack cooldown: 120 frames (~2 seconds at 60fps)
 - Team-based: Same team members cannot damage each other
 - Battle ends when all members of one team are defeated
 
@@ -92,11 +98,13 @@ Global `game` object manages all state:
 No configuration files needed. Game settings are hardcoded:
 - Max players: 20
 - Canvas size: 1400×800
+- Knight size: 35 pixels
 - Base HP: 20
 - Base damage: 5
-- Movement speed: 8 pixels/frame (fast-paced)
-- Attack range: 100 pixels
-- Attack cooldown: 20 frames
+- Base attack range: 80 pixels (varies 95-155 with stats)
+- Movement speed: 1.25 pixels/frame (very slow, tactical pace)
+- Attack cone angle: 60 degrees (±30° from facing direction)
+- Attack cooldown: 120 frames (~2 seconds)
 - AI think interval: 15 frames (how often AI re-evaluates targets)
 
 ## Dependencies

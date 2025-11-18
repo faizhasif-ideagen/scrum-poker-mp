@@ -21,8 +21,10 @@ Story Point Knights Team Battle is a chaotic, action-packed game where:
 
 - **Team-Based Combat**: Same story points = teammates, auto-split into left vs right
 - **All Players On Screen**: Every knight displayed and fighting simultaneously
-- **Random Stats**: Each player gets 5 unique stat bonuses affecting HP and damage
-- **Fast-Paced Action**: 2.5x faster movement than original version
+- **Beautiful Knight Graphics**: Shield + helmet design with team colors and cross emblem
+- **Random Stats**: Each player gets 5 unique stat bonuses affecting HP, damage, and range
+- **Highly Tactical**: Very slow movement (1.25px/frame) and 2-second attack cooldown
+- **Directional Attacks**: Forward-facing cone attacks - positioning matters!
 - **Smart AI**: All non-player knights autonomously seek and attack enemies
 - **Team Protection**: Same team cannot damage each other
 - **Simple Controls**: Arrow keys for movement, space bar to attack
@@ -107,16 +109,18 @@ Each player receives 5 random stat levels (1-5):
 - **Stat 1**: HP Boost - adds 3-15 HP
 - **Stat 2**: Damage Boost - adds 2-10 damage
 - **Stat 3**: Balanced - adds 1-5 HP and damage
-- **Stat 4**: Extra HP - adds 2-10 HP
+- **Stat 4**: Attack Range - adds 7.5-37.5 range (makes long-range fighters!)
 - **Stat 5**: Extra Damage - adds 1.5-7.5 damage
 
-Base stats: 20 HP, 5 damage
+Base stats: 20 HP, 5 damage, 40 attack range
 
 ### Combat
-- Attack range: 100 pixels
-- Attack cooldown: ~0.33 seconds (20 frames)
-- Movement speed: 8 pixels per frame (FAST!)
+- **Directional Attacks**: 60° forward-facing cone with sword swipe animation
+- **Attack range**: 48-78 pixels (randomized per knight)
+- **Attack cooldown**: ~2 seconds (120 frames)
+- **Movement speed**: 1.25 pixels per frame (very slow, tactical pace)
 - Knights can move freely in all directions
+- Must face target to hit them - position matters!
 - Team-based: Cannot attack same team
 - AI re-evaluates targets every 15 frames
 - Battles end when one entire team is eliminated
@@ -143,7 +147,9 @@ Works on all modern browsers:
 - **No Build Process**: Works immediately without compilation
 - **No Internet Required**: Fully offline capable
 - **Canvas-Based**: Smooth 60 FPS rendering at 1400×800px
-- **AI System**: Autonomous knight behavior with target acquisition
+- **Custom Graphics**: Hand-drawn knight shields and helmets with team colors
+- **Directional Combat**: Cone-based hit detection with angle calculations
+- **AI System**: Autonomous knight behavior with target acquisition and facing
 - **Team Logic**: Smart attack validation prevents friendly fire
 
 ## File Structure

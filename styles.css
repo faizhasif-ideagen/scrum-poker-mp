@@ -4,14 +4,20 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 20px;
+}
+
 body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #004d4d 0%, #008B8B 50%, #20B2AA 100%);
     color: #fff;
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    padding: 20px 0;
 }
 
 #app {
@@ -680,6 +686,444 @@ body {
     font-weight: bold;
     color: white;
     margin: 0 10px;
+}
+
+/* Login Screen */
+#loginScreen h1 {
+    text-align: center;
+    font-size: 3.5em;
+    margin-bottom: 50px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.login-container {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: stretch;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.login-option {
+    flex: 1;
+}
+
+.mode-btn {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 50px 30px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.mode-btn.network-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.mode-btn.network-btn:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.6);
+}
+
+.mode-btn.local-btn {
+    background: linear-gradient(135deg, #00CED1 0%, #20B2AA 100%);
+    box-shadow: 0 10px 30px rgba(0, 206, 209, 0.4);
+}
+
+.mode-btn.local-btn:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 206, 209, 0.6);
+}
+
+.btn-icon {
+    font-size: 5em;
+}
+
+.btn-title {
+    font-size: 2em;
+    font-weight: bold;
+    color: white;
+}
+
+.btn-desc {
+    font-size: 1.1em;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    max-width: 80%;
+}
+
+/* Network Login Screen */
+#networkLoginScreen h1 {
+    text-align: center;
+    font-size: 3em;
+    margin-bottom: 30px;
+}
+
+.network-login-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.network-info {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.network-status {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.network-url {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+}
+
+.network-url strong {
+    color: #00CED1;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 5px 15px;
+    border-radius: 5px;
+}
+
+.network-instruction {
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.logged-in-players {
+    margin-bottom: 30px;
+}
+
+.logged-in-players h3 {
+    color: #00CED1;
+    margin-bottom: 15px;
+}
+
+.network-players-list {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 10px;
+    min-height: 150px;
+}
+
+.network-player-item {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.network-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 2px solid #00CED1;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.action-btn:hover {
+    background: rgba(0, 206, 209, 0.2);
+    transform: scale(1.02);
+}
+
+.back-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    background: rgba(100, 100, 100, 0.3);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.back-btn:hover {
+    background: rgba(100, 100, 100, 0.5);
+    transform: scale(1.02);
+}
+
+/* Rankings Screen */
+#rankingsScreen h1 {
+    text-align: center;
+    font-size: 3em;
+    margin-bottom: 30px;
+}
+
+.rankings-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.top-scorer-section {
+    background: rgba(255, 215, 0, 0.1);
+    border: 3px solid gold;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.top-scorer-section h2 {
+    color: gold;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+.top-scorer-display {
+    font-size: 1.5em;
+    color: #FFD700;
+}
+
+.top-scorer-name {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 10px 0;
+    text-shadow: 0 0 20px gold;
+}
+
+.top-scorer-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px 25px;
+    border-radius: 10px;
+    border: 2px solid gold;
+}
+
+.stat-label {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.stat-value {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: gold;
+}
+
+.rankings-table-section {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.rankings-table-section h2 {
+    color: #00CED1;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.rankings-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.rankings-table thead {
+    background: rgba(0, 206, 209, 0.3);
+}
+
+.rankings-table th {
+    padding: 15px;
+    text-align: left;
+    color: #00CED1;
+    font-weight: bold;
+}
+
+.rankings-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rankings-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.rank-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+.rank-1 {
+    background: gold;
+    color: black;
+}
+
+.rank-2 {
+    background: silver;
+    color: black;
+}
+
+.rank-3 {
+    background: #cd7f32;
+    color: white;
+}
+
+.rankings-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.rankings-actions button {
+    flex: 1;
+    min-width: 200px;
+}
+
+.reset-btn {
+    flex: 1;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    background: rgba(220, 53, 69, 0.3);
+    color: white;
+    border: 2px solid #dc3545;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.reset-btn:hover {
+    background: rgba(220, 53, 69, 0.5);
+    transform: scale(1.02);
+}
+
+/* Finish Button */
+.finish-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.finish-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* Winner Actions */
+.winner-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.edit-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+}
+
+.edit-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(240, 147, 251, 0.5);
+}
+
+/* Edit Story Points Modal Styles */
+.edit-points-section {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+}
+
+.edit-points-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+
+.edit-points-item input,
+.edit-points-select {
+    width: 100px;
+    padding: 8px;
+    border: 2px solid #00CED1;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.edit-points-select {
+    cursor: pointer;
+}
+
+.edit-points-select:focus {
+    outline: none;
+    border-color: #20B2AA;
+    box-shadow: 0 0 10px rgba(0, 206, 209, 0.5);
 }
 
 /* Scrollbar Styling */
